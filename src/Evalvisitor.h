@@ -4,6 +4,7 @@
 
 #include "Python3BaseVisitor.h"
 #include "Rec.h"
+#include "bigint.h"
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -163,13 +164,16 @@ class EvalVisitor: public Python3BaseVisitor {
             return visitArith_expr(ctx->arith_expr()[0]);
         for(int i=0;i<tmp.size();++i){
             auto op=tmp[i]->getText();
-            auto left=visitArith_expr(ctx->arith_expr()[i]).as<Rec>();
-            auto right=visitArith_expr(ctx->arith_expr()[i+1]).as<Rec>();
-            bool flag=false;
+            Rec left=visitArith_expr(ctx->arith_expr()[i]).as<Rec>();
+            Rec right=visitArith_expr(ctx->arith_expr()[i+1]).as<Rec>();
+            bool flag= false;
             if(op=="<") {
+                //cout<<(left<right)<<endl;
+                //left.toprint();
+                //right.toprint();
                 if (left < right) flag = true;
             } else if(op==">"){
-                if(left>right) flag=true;
+                if(left>right) flag = true;
             } else if(op=="=="){
                 if(left==right) flag=true;
             } else if(op==">="){
