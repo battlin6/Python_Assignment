@@ -168,9 +168,6 @@ class EvalVisitor: public Python3BaseVisitor {
             Rec right=visitArith_expr(ctx->arith_expr()[i+1]).as<Rec>();
             bool flag= false;
             if(op=="<") {
-                //cout<<(left<right)<<endl;
-                //left.toprint();
-                //right.toprint();
                 if (left < right) flag = true;
             } else if(op==">"){
                 if(left>right) flag = true;
