@@ -47,18 +47,19 @@ bigint::bigint(){
     signal=1;
 }
 bool bigint::operator>(const bigint &b)const {
+    string s1=num,s2=b.num;
     if(signal==1&&b.signal==0)
         return true;
     else if(signal==1&&b.signal==1){
-        if(num.size()>b.num.size())
+        if(s1.size()>s2.size())
             return true;
-        if(num.size()==b.num.size()&&num>b.num)
+        if(s1.size()==s2.size()&&s1>s2)
             return true;
     }
     else if(signal==0&&b.signal==0){
-        if(num.size()<b.num.size())
+        if(s1.size()<s2.size())
             return true;
-        if(num.size()==b.num.size()&&num<b.num)
+        if(s1.size()==s2.size()&&s1<s2)
             return true;
     } else
         return false;
