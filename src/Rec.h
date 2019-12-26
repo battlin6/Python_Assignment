@@ -29,6 +29,12 @@ private:
         if(b.Type==Bool&&a.Type==Double) b=b.transdouble();
         if(a.Type==Int&&b.Type==Double) a=a.transdouble();
         if(b.Type==Int&&a.Type==Double) b=b.transdouble();
+        if(a.Type==Non&&b.Type==Int) a=a.transint();
+        if(b.Type==Non&&a.Type==Int) b=b.transint();
+        if(a.Type==Non&&b.Type==Double) a=a.transdouble();
+        if(b.Type==Non&&a.Type==Double) b=b.transdouble();
+        if(a.Type==Non&&b.Type==Bool) a=a.transbool();
+        if(b.Type==Non&&a.Type==Bool) b=b.transbool();
     }
 public:
     bool getbool(){
@@ -94,6 +100,41 @@ public:
         vbool=b;
         vint=0;
         Type=Bool;
+    }
+    explicit Rec (const bigint& b,type T){
+        vstring="";
+        vdouble=0;
+        vbool=false;
+        vint=b;
+        Type=T;
+    }
+    explicit Rec (const int& b,type T){
+        Type=T;
+        vstring="";
+        vdouble=0;
+        vbool=false;
+        vint=bigint(b);
+    }
+    explicit Rec (const double& d,type T){
+        Type=T;
+        vstring="";
+        vdouble=d;
+        vbool=false;
+        vint=0;
+    }
+    explicit Rec (const string &s,type T){
+        vstring=s;
+        vdouble=0;
+        vbool=false;
+        vint=0;
+        Type=T;
+    }
+    explicit Rec (const bool &b,type T){
+        vstring="";
+        vdouble=0;
+        vbool=b;
+        vint=0;
+        Type=T;
     }
     Rec transint() {
         Rec tmp(Int);
@@ -188,7 +229,7 @@ public:
         if(Type==Int) return Rec(vint*b.vint);
         if(Type==Double) return Rec(vdouble*vdouble);
         if(Type==Str){
-            Rec tmp("");
+            Rec tmp("",Str);
             for(bigint i(1);i<=b.vint;i+=bigint(1)){
                 tmp.vstring+=vstring;
             }
