@@ -165,7 +165,7 @@ public:
             return tmp;
         }
     }
-    void toprint(){
+    void toprint()const{
         if(Type==Int) cout<<vint;
         else if(Type == Str) cout << vstring;
         else if(Type==Bool) cout<<(vbool ? "True" : "False");
@@ -253,12 +253,13 @@ public:
         if(Type==Str&&b.Type==Str&&vstring>b.vstring) return true;
         if(Type==Bool&&b.Type==Bool&&vbool>b.vbool) return true;
         if(Type==Double&&b.Type==Double&&vdouble>b.vdouble) return true;
-    }
-    bool operator>=(const Rec& b){
-        return *this==b||*this>b;
+        return false;
     }
     bool operator<(const Rec&b){
-        return !(*this>=b);
+        return !((*this==b)||(*this>b));
+    }
+    bool operator>=(const Rec& b){
+        return !(*this<b);
     }
     bool operator<=(const Rec&b){
         return !(*this>b);
