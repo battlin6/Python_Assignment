@@ -141,6 +141,7 @@ public:
         if (Type == Int) return *this;
         else if (Type == Double) {
             int x = int(vdouble);
+            //cout<<x<<endl;
             bigint T(x);
             tmp.vint = T;
             return tmp;
