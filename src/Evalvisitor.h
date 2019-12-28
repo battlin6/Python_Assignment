@@ -214,7 +214,7 @@ class EvalVisitor: public Python3BaseVisitor {
                 T%=tmp;
             }else if(now[0]=='/'&&now[1]!='/'){
                 T/=tmp;
-            }else{
+            }else if(now[0]=='/'&&now[1]=='/'){
                 ext++;
                 T=ZC(T,tmp);
             }
