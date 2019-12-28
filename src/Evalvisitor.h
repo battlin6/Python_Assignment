@@ -29,7 +29,7 @@ class EvalVisitor: public Python3BaseVisitor {
         ftolis["bool"]=4;
         for(const auto i : ctx->stmt())
             visitStmt(i);
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitFuncdef(Python3Parser::FuncdefContext *ctx) override {
         string Name = ctx->NAME()->getText();
@@ -39,7 +39,7 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitParameters(Python3Parser::ParametersContext *ctx) override {
         if(ctx->typedargslist()) return visitTypedargslist(ctx->typedargslist());
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitTypedargslist(Python3Parser::TypedargslistContext *ctx) override {
         //Though it is a key part,I ignore its importance,resulting in many bugs.
@@ -47,20 +47,20 @@ class EvalVisitor: public Python3BaseVisitor {
         //from back to front
         int i=0,j=0; //i->tppedef  j->test
         for(;j<ctx->test().size();++i,++j){
-            string now = visitTfpdef(ctx->tfpdef()[ctx->tfpdef().size()-i-1]).as<string>();
+            string now = visitTfpdef(ctx->tfpdef()[ctx->tfpdef().size()-i-1]);
             Rec tmp = visitTest(ctx->test()[ctx->test().size()-j-1]).as<Rec>();
             Funcset[nowcntfunc][now] = tmp;
             Funcname[nowcntfunc].push_back(now);
         }
         for(;i<ctx->tfpdef().size();++i){
-            string now = visitTfpdef(ctx->tfpdef()[ctx->tfpdef().size()-i-1]).as<string>();
+            string now = visitTfpdef(ctx->tfpdef()[ctx->tfpdef().size()-i-1]);
             Rec tmp;
             Funcset[nowcntfunc][now] = tmp;
             Funcname[nowcntfunc].push_back(now);
         }
         for(int k=0;k<Funcname[nowcntfunc].size()/2;k++)
             swap(Funcname[nowcntfunc][k],Funcname[nowcntfunc][Funcname[nowcntfunc].size()-1-k]);
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitTfpdef(Python3Parser::TfpdefContext *ctx) override {
         return ctx->NAME()->getText();
@@ -104,10 +104,10 @@ class EvalVisitor: public Python3BaseVisitor {
                 }
             }
         }
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitAugassign(Python3Parser::AugassignContext *ctx) override {
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitFlow_stmt(Python3Parser::Flow_stmtContext *ctx) override {
         if(ctx->break_stmt()) return visitBreak_stmt(ctx->break_stmt());
@@ -116,11 +116,11 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitBreak_stmt(Python3Parser::Break_stmtContext *ctx) override {
         Conditon=Break;
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitContinue_stmt(Python3Parser::Continue_stmtContext *ctx) override {
         Conditon=Continue;
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) override {
         int funct=constfunc;
@@ -129,7 +129,7 @@ class EvalVisitor: public Python3BaseVisitor {
             vector<Rec> tmp = visitTestlist(ctx->testlist()).as<vector<Rec>>();
             return tmp;
         }
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitCompound_stmt(Python3Parser::Compound_stmtContext *ctx) override {
         if(ctx->if_stmt()) return visitIf_stmt(ctx->if_stmt());
@@ -156,7 +156,7 @@ class EvalVisitor: public Python3BaseVisitor {
             }
         }
         //debug
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitTest(Python3Parser::TestContext *ctx) override {
         //cerr<<"bug"<<endl;
@@ -301,12 +301,12 @@ class EvalVisitor: public Python3BaseVisitor {
                 return tmp;
             }
         }
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitTrailer(Python3Parser::TrailerContext *ctx) override {
         if(ctx->arglist())
             return visitArglist(ctx->arglist());
-        return ctx;
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitAtom(Python3Parser::AtomContext *ctx) override {
         string Text = ctx->getText();
