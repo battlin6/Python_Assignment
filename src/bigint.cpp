@@ -3,8 +3,8 @@
 //
 
 #include "bigint.h"
-
 #include <utility>
+
 using namespace std;
 bigint::bigint(string c) {
     if (c == "-0") {
@@ -63,6 +63,7 @@ bool bigint::operator>(const bigint &b)const {
             return true;
     } else
         return false;
+    return false;
 }
 bool bigint::operator==(const bigint &b) const {
     return num==b.num&&signal==b.signal;
@@ -297,52 +298,62 @@ bigint bigint::operator-(const bigint &b)const{
         return *this+tmp;
     }
 }
-bigint bigint::operator*(const bigint &b)const{
+bigint bigint::operator*(const bigint &b)const {
     bigint tmp;
-    for(int i=0;i<int(num.size())+int(b.num.size());++i)
-        tmp.num+="0";
-    for(int i=0;i<num.size();++i){
-        for(int j=0;j<b.num.size();++j){
-            tmp.num[i+j]+=int(num[num.size()-1-i]-'0')*int(b.num[b.num.size()-1-j]-'0');
-            if(tmp.num[i+j]>'9'){
-                tmp.num[i+j]-=10;
-                tmp.num[i+j+1]+=1;
+    for (int i = 0; i < int(num.size()) + int(b.num.size()); ++i)
+        tmp.num += "0";
+    for (int i = 0; i < num.size(); ++i) {
+        for (int j = 0; j < b.num.size(); ++j) {
+            int c = int(num[num.size() - 1 - i] - '0') * int(b.num[b.num.size() - 1 - j] - '0');
+            while (c > 9) {
+                c -= 10;
+                tmp.num[i + j + 1] += 1;
             }
-           // cout<<int(num[num.size()-1-i]-'0')<<" "<<int(b.num[b.num.size()-1-j]-'0')<<" "<<tmp.num[i+j]<<endl;
+            tmp.num[i + j] += c;
+            while (tmp.num[i + j] > '9') {
+                tmp.num[i + j] -= 10;
+                tmp.num[i + j + 1] += 1;
+            }
+            for (int k = i + j + 1; tmp.num[k] > '9' && k < tmp.num.size(); ++k) {
+                tmp.num[k] -= 10;
+                tmp.num[k + 1] += 1;
+            }
         }
+        // cout<<int(num[num.size()-1-i]-'0')<<" "<<int(b.num[b.num.size()-1-j]-'0')<<" "<<tmp.num[i+j]<<endl;
     }
     //cout<<tmp.num<<endl;
-    for(int i=0;i<tmp.num.size();++i){
-        while(tmp.num[i]>'9'){
-            tmp.num[i]-=10;
-            tmp.num[i+1]+=1;
+    for (int i = 0; i < tmp.num.size(); ++i) {
+        while (tmp.num[i] > '9') {
+            tmp.num[i] -= 10;
+            tmp.num[i + 1] += 1;
         }
-      //  cout<<tmp.num[i]<<" "<<bool(tmp.num[i]>'9')<<endl;
+        //  cout<<tmp.num[i]<<" "<<bool(tmp.num[i]>'9')<<endl;
     }
-    int j=0;
-    for(int i=0;i<tmp.num.size();++i){
-        if(tmp.num[tmp.num.size()-i-1]!='0'){
-            j=tmp.num.size()-i-1;
+    int j = 0;
+    for (int i = 0; i < tmp.num.size(); ++i) {
+        if (tmp.num[tmp.num.size() - i - 1] != '0') {
+            j = tmp.num.size() - i - 1;
             break;
         }
     }
     bigint T;
-    for(int i=0;i<=j;++i){
-        T.num+=tmp.num[j-i];
+    for (int i = 0; i <= j; ++i) {
+        T.num += tmp.num[j - i];
     }
-    if(T.num=="0") return T;
-    else if(signal!=b.signal){
-        T.signal^=1;
+    if (T.num == "0") return T;
+    else if (signal != b.signal) {
+        T.signal ^= 1;
         return T;
-    }else return T;
+    } else return T;
 }
 ostream & operator<<(ostream &os, const bigint &b) {
     if(b.signal==0)
         os<<'-';
     os << b.num;
+    return os;
 }
 bigint Zdiv(const bigint &a,const bigint &b){
-    bigint tmp,tmp1=a,tmp2=b;
+    bigint tmp1=a,tmp2=b;
     tmp1.signal=1,tmp2.signal=1;
     if(tmp1<tmp2){
         bigint T("0");
@@ -351,14 +362,27 @@ bigint Zdiv(const bigint &a,const bigint &b){
         bigint test,TT;
         for(int i=0;i<tmp2.num.size();++i){
             test.num+=a.num[i];
+            //cout<<test.num<<endl;
         }
+        //cout<<test.num<<endl;
         for(int k=0;k<int(a.num.size())-int(tmp2.num.size())+1;++k){
             int ans=0;
-            while(test>=tmp2){
-                test=test-tmp2;
+            bigint tmp=tmp2;
+            //cout<<tmp.num<<endl;
+            //cout<<test.num<<endl;
+           // cout<<(tmp<=test)<<endl;
+            while(tmp<=test){
+                //cout<<12123<<endl;
+                tmp=tmp+tmp2;
                 ans++;
+                //cout<<ans<<endl;
             }
+            test-=(tmp-tmp2);
+            //cout<<test.num<<" "<<tmp2.num<<endl;
+            //cout<<test.num<<endl;
             TT.num+=char(ans+'0');
+            //cout<<ans<<endl;
+            //cout<<TT.num<<endl;
             if(test.num=="0") test.num=a.num[k+tmp2.num.size()];
             else if(k!=int(a.num.size())-int(tmp2.num.size()))
                 test.num+=a.num[k+tmp2.num.size()];
