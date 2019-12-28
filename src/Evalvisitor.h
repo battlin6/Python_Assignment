@@ -18,7 +18,7 @@ int cntfunc=4;  //record numbers of NAME
 #define debug cout<<"bug"<<endl;
 int constfunc=0,notin[2003];
 Python3Parser::SuiteContext *Lis[2003];
-int Stack[2003],top=0;
+int Stack[2003],top=0;  //stack!!!!!
 
 class EvalVisitor: public Python3BaseVisitor {
     virtual antlrcpp::Any visitFile_input(Python3Parser::File_inputContext *ctx) override{
@@ -78,7 +78,8 @@ class EvalVisitor: public Python3BaseVisitor {
             string op = ctx->augassign()->getText();
             for (unsigned int i = 0; i < tmp.size(); ++i) {
                 string now = ctx->testlist()[0]->test()[i]->getText();
-                int tot = AllR[nowdepth].count(now) ? nowdepth : 0;
+                //cout<<now<<endl;
+                int tot = AllR[nowdepth].count(now) ? nowdepth : 0;  // determine global or limited
                 if (op == "+=") AllR[tot][now] += tmp[i];
                 else if (op == "-=") AllR[tot][now] -= tmp[i];
                 else if (op == "*=") AllR[tot][now] *= tmp[i];
@@ -87,9 +88,11 @@ class EvalVisitor: public Python3BaseVisitor {
                 else AllR[tot][now] %= tmp[i];
             }
         }else {
+            //debug
             for (int k = ctx->testlist().size() - 2; k >= 0; k--) {
                 for (int i = 0; i < tmp.size(); i++) {
                     string now = ctx->testlist()[k]->test()[i]->getText();
+                    //cout<<now<<endl;
                     int tot = AllR[nowdepth].count(now) ? nowdepth : 0;
                     AllR[tot][now] = tmp[i];
                 }
@@ -248,23 +251,23 @@ class EvalVisitor: public Python3BaseVisitor {
         } //out is special
 
         if (ctx->atom()->NAME()) {
-            int funct = constfunc = ftolis[ctx->atom()->NAME()->getText()];
-            Stack[++top] = funct;
-            if (funct <= 4) {
+            int funct = constfunc = ftolis[ctx->atom()->NAME()->getText()];  //catch the number of a NAME
+            Stack[++top] = funct;  // push into a stack
+            if (funct <= 4) {   // transfuntion is special
                 Rec tmp = visitTrailer(ctx->trailer());
                 constfunc = Stack[--top];
                 return tmp;
             } else {
                 int nowdepth = ++depth;
                 notin[nowdepth] = notin[nowdepth - 1] + 1;
-                for (int i = 0; i < Funcname[funct].size(); i++) {
+                for (int i = 0; i < Funcname[funct].size(); ++i) {
                     auto p = Funcname[funct][i];
                     if (Funcset[funct][p].gettype() != Non) AllR[nowdepth][p] = Funcset[funct][p];
                 }
                 visitTrailer(ctx->trailer());
                 notin[nowdepth] = 0;
                 Rec tmp = visitSuite(Lis[funct]);
-                AllR[depth].clear();
+                AllR[depth].clear();  //clear current depth
                 id = 0;
                 depth--;
                 constfunc = Stack[--top];
@@ -278,15 +281,14 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitAtom(Python3Parser::AtomContext *ctx) override {
         string Text = ctx->getText();
-
-        if(ctx->NAME()!=NULL){
+        if(ctx->NAME()){
             int nowdepth=depth,qwq=notin[depth];
-            if(AllR[nowdepth-qwq].count(ctx->NAME()->getText()))
-                return AllR[-qwq][ctx->NAME()->getText()];
+            if(AllR[nowdepth-qwq].count(ctx->NAME()->getText()))   // global or not
+                return AllR[nowdepth-qwq][ctx->NAME()->getText()];
             else return AllR[0][ctx->NAME()->getText()];
         }else if(ctx->test()){
             return visit(ctx->test());
-        }else if(ctx->NUMBER()) {
+        }else if(ctx->NUMBER()){
             int flag = 0;
             for (int i = 0; i < Text.size(); ++i) {
                 if (Text[i] == '.') {
@@ -307,7 +309,7 @@ class EvalVisitor: public Python3BaseVisitor {
                     dot *= 0.1;
                 }
                 return Rec(a);
-            } else return Rec(bigint(Text));
+            }else return Rec(bigint(Text));
         }else if(ctx->STRING().size()){
             string tmp = "";
             for (auto i: ctx->STRING()) {
@@ -327,9 +329,8 @@ class EvalVisitor: public Python3BaseVisitor {
         return T;
     }
     virtual antlrcpp::Any visitArglist(Python3Parser::ArglistContext *ctx) override {
-        debug
-        int funct=constfunc;
-        int nowdepth=depth;
+        //debug
+        int funct=constfunc,nowdepth=depth;
         Rec tmp=visitArgument(ctx->argument()[0]);
         if(funct&&!ctx->argument()[0]->NAME())
             AllR[nowdepth][Funcname[funct][0]] = tmp;
@@ -345,25 +346,12 @@ class EvalVisitor: public Python3BaseVisitor {
         return tmp;
     }
     virtual antlrcpp::Any visitArgument(Python3Parser::ArgumentContext *ctx) override {
-        Rec T;
-        int funct=constfunc;
+        Rec tmp;
         int nowdepth=depth;
-        if(ctx->NAME()) {
-            const auto &c=ctx->NAME();
-            Rec tmp=visitTest(ctx->test());
-            AllR[nowdepth][c->getText()]=tmp;
-            T= AllR[nowdepth][c->getText()];
-        }else{
-            Rec tmp =visitTest(ctx->test());
-            /*for(int i=0;i<tmp.size();i++){
-                if(i!=0)putchar(' ');
-                if(funct==1)tmp[i].print();
-            }*/
-            T=tmp;
-        }
-        return T;
+        if(ctx->NAME()) tmp= AllR[nowdepth][ctx->NAME()->getText()]=visitTest((ctx->test()));
+        else tmp =visitTest(ctx->test());
+        return tmp;
     }
-
 };
 
 
