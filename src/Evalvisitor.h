@@ -1,40 +1,40 @@
 #ifndef PYTHON_INTERPRETER_EVALVISITOR_H
 #define PYTHON_INTERPRETER_EVALVISITOR_H
 
-
 #include "Python3BaseVisitor.h"
 #include "Rec.h"
 #include "bigint.h"
 #include <bits/stdc++.h>
 using namespace std;
 
-enum Command{Nono,Return,Break,Continue};
-Command Conditon=Nono;
+enum Command {Nono,Return,Break,Continue};
+Command Conditon = Nono;
 map<string,Rec> AllR[2003];
 map<string,Rec> Funcset[2003]; //record value(in the form of Rec)
-map<string , int>ftolis;   //set a Func to int relations in order to catch Lis[]
+map<string , int> ftolis={
+        {"int",1},
+        {"float",2},
+        {"str",3},
+        {"bool",4}
+};   //set a Func to int relations in order to catch Lis[]
 vector<string> Funcname[2003]; //record Funcs
-int depth=0;
-int cntfunc=4;  //record numbers of NAME
-#define debug cout<<"bug"<<endl;
+int depth = 0;
+int cntfunc = 4;  //record numbers of Func and have four convertional funcs
+#define debug cout<<"bug"<<endl;  //debug!!!!!debug!!!!!
 int constfunc=0,notin[2003];
 Python3Parser::SuiteContext *Lis[2003];
 int Stack[2003],top=0;  //stack!!!!!
 
 class EvalVisitor: public Python3BaseVisitor {
     virtual antlrcpp::Any visitFile_input(Python3Parser::File_inputContext *ctx) override{
-        ftolis["int"]=1;
-        ftolis["str"]=3;
-        ftolis["float"]=2;
-        ftolis["bool"]=4;
         for(const auto i : ctx->stmt())
             visitStmt(i);
         return Rec(Non);
     }
     virtual antlrcpp::Any visitFuncdef(Python3Parser::FuncdefContext *ctx) override {
         string Name = ctx->NAME()->getText();
-        ftolis[Name]=++cntfunc;
-        Lis[cntfunc]=ctx->suite();
+        ftolis[Name]=++cntfunc;  //func numbers plus
+        Lis[cntfunc]=ctx->suite();  //tie the Lis to suite
         return visitParameters(ctx->parameters());
     }
     virtual antlrcpp::Any visitParameters(Python3Parser::ParametersContext *ctx) override {
@@ -127,7 +127,8 @@ class EvalVisitor: public Python3BaseVisitor {
         Conditon=Return;
         if(ctx->testlist()) {
             vector<Rec> tmp = visitTestlist(ctx->testlist()).as<vector<Rec>>();
-            return tmp;
+            //return tmp;
+            return tmp[0];
         }
         return Rec(Non);
     }
