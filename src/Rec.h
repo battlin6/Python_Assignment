@@ -228,7 +228,7 @@ public:
     Rec operator*(Rec b){
         qiangzhi(*this,b);
         if(Type==Int) return Rec(vint*b.vint);
-        if(Type==Double) return Rec(vdouble*vdouble);
+        if(Type==Double) return Rec(vdouble*b.vdouble);
         if(Type==Str){
             Rec tmp("",Str);
             for(bigint i(1);i<=b.vint;i+=bigint(1)){
