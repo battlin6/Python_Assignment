@@ -38,7 +38,8 @@ public:
     friend ostream& operator<<(ostream & os, const bigint &);
     friend bigint Zdiv(const bigint &, const bigint &);
     friend bigint Zdive(bigint &,const bigint &);
-    friend int Toint(bigint &);
+    friend int Toint(const bigint &);
+    int getsignal();
 };
 
 
