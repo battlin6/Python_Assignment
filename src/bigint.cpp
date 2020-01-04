@@ -356,8 +356,14 @@ bigint Zdiv(const bigint &a,const bigint &b){
     bigint tmp1=a,tmp2=b;
     tmp1.signal=1,tmp2.signal=1;
     if(tmp1<tmp2){
-        bigint T("0");
-        return T;
+        if(a.signal!=b.signal) {
+            bigint T("-1");
+            return T;
+        }
+        else {
+            bigint T("0");
+            return T;
+        }
     } else{
         bigint test,TT;
         for(int i=0;i<tmp2.num.size();++i){
