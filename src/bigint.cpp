@@ -445,7 +445,7 @@ int Toint(bigint &b){
     int x=0;
     for(int i=0;i<b.num.size();++i){
         x*=10;
-        x+=(b.num[b.num.size()-1-i]-'0');
+        x+=(b.num[i]-'0');
     }
     if(b.signal==0) x=-x;
     return x;
