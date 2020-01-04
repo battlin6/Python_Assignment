@@ -138,10 +138,43 @@ class EvalVisitor: public Python3BaseVisitor {
         if(ctx->funcdef()) return visitFuncdef(ctx->funcdef());
     }
     virtual antlrcpp::Any visitIf_stmt(Python3Parser::If_stmtContext *ctx) override {
-        //to do
+        Rec tmp = visitTest(ctx->test()[0]);
+        int pos = 0;
+        tmp = tmp.transbool();
+        while (!tmp.getbool() && pos + 1 < ctx->test().size()) {
+            pos++;
+            Rec T = visitTest(ctx->test()[pos]);
+            T = T.transbool();
+            tmp = T;
+        }
+        if (tmp.getbool()) {
+            Rec T = visitSuite(ctx->suite()[pos]);
+            return T;
+        } else if (pos + 1 < ctx->suite().size()) {
+            Rec T = visitSuite(ctx->suite()[pos + 1]);
+            return T;
+        }
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitWhile_stmt(Python3Parser::While_stmtContext *ctx) override {
-        //to do
+        Rec tmp=visitTest(ctx->test());
+        tmp=tmp.transbool();
+        while(tmp.getbool()){
+            Rec T = visitSuite(ctx->suite());
+            //cout<<ctx->suite()->getText()<<endl;
+            if(Conditon==Break){
+                Conditon=Nono;
+                break;
+            }
+            else if(Conditon==Continue)
+                Conditon=Nono;
+            else if(Conditon==Return)
+                return T;
+            Rec tmp1=visitTest(ctx->test());
+            tmp1.transbool();
+            tmp=tmp1;
+        }
+        return Rec(Non);
     }
     virtual antlrcpp::Any visitSuite(Python3Parser::SuiteContext *ctx) override {
         //debug
