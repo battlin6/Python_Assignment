@@ -441,18 +441,20 @@ bigint &bigint::operator%=(const bigint &b) {
     *this=*this%b;
     return *this;
 }
-int Toint(bigint &b){
+int Toint(const bigint &b){
     int x=0;
     for(int i=0;i<b.num.size();++i){
         x*=10;
-        x+=(b.num[i]-'0');
+        x+=int(b.num[i]-'0');
     }
     if(b.signal==0) x=-x;
     return x;
 }
-
 string bigint::getstring(){
     return num;
+}
+int bigint::getsignal(){
+    return signal;
 }
 
 
