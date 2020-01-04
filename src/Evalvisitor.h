@@ -124,9 +124,9 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) override {
         int funct=constfunc;
-        Conditon=Return;
         if(ctx->testlist()) {
             vector<Rec> tmp = visitTestlist(ctx->testlist()).as<vector<Rec>>();
+                Conditon=Return;
             //return tmp;
             return tmp[0];
         }
