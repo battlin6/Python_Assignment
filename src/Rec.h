@@ -52,6 +52,7 @@ public:
     type gettype (){
         return Type;
     }
+
     Rec(){
         vstring="";
         vdouble=0;
@@ -136,6 +137,7 @@ public:
         vint=0;
         Type=T;
     }
+
     Rec transint() {
         Rec tmp(Int);
         if (Type == Int) return *this;
@@ -146,7 +148,7 @@ public:
             tmp.vint = T;
             return tmp;
         } else if (Type == Bool) {
-            if (vbool == 1) tmp.vint = 1;
+            if (vbool) tmp.vint = 1;
             else tmp.vint = 0;
             return tmp;
         } else if (Type == Str) {
@@ -155,7 +157,7 @@ public:
             return tmp;
         }
     }
-    Rec transdouble(){     //In this part I cannot be sure that if Type==Str how to trans to double
+    Rec transdouble(){     //In this part I cannot be sure that if Type==Str how to trans to double may be it is invalid
         Rec tmp(Double);
         if(Type==Double) return *this;
         else if(Type==Int){
@@ -170,7 +172,7 @@ public:
             return tmp;
         }
         else if(Type==Bool){
-            if(vbool==1) tmp.vdouble=double(1);
+            if(vbool) tmp.vdouble=double(1);
             else tmp.vdouble=double(0);
             return tmp;
         }
@@ -180,6 +182,10 @@ public:
         if(Type==Str) return *this;
         else if(Type==Int){
             tmp.vstring=vint.getstring();
+            if(vint.getsignal()==0){
+                string T="-"+tmp.vstring;
+                tmp.vstring = T;
+            }
             return tmp;
         }
         else if(Type==Double){
@@ -195,11 +201,11 @@ public:
         Rec tmp(Bool);
         if(Type==Bool) return *this;
         else if(Type==Int){
-            tmp.vbool = !(vint.getstring().empty());
+            tmp.vbool = !(vint == bigint(0));
             return tmp;
         }
         else if(Type==Double){
-            tmp.vbool = vdouble != 0;
+            tmp.vbool = !(vdouble == 0);
             return tmp;
         }
         else if(Type==Str){
@@ -207,6 +213,7 @@ public:
             return tmp;
         }
     }
+
     void toprint()const{
         if(Type==Int) cout<<vint;
         else if(Type == Str) cout << vstring;
@@ -214,44 +221,50 @@ public:
         else if(Type==Non) cout<<"None";
         else printf("%0.6f",vdouble);
     }
+
     Rec operator+(Rec b){
-        qiangzhi(*this,b);
-        if(Type==Int) return Rec(vint+b.vint);
-        if(Type==Str) return Rec(vstring+b.vstring);
-        if(Type==Double) return Rec(vdouble+b.vdouble);
+        Rec a=*this;
+        qiangzhi(a,b);
+        if(Type==Int) return Rec(a.vint+b.vint);
+        if(Type==Str) return Rec(a.vstring+b.vstring);
+        if(Type==Double) return Rec(a.vdouble+b.vdouble);
     }
     Rec operator-(Rec b){
-        qiangzhi(*this,b);
-        if(Type==Int) return Rec(vint-b.vint);
-        if(Type==Double) return Rec(vdouble-b.vdouble);
+        Rec a=*this;
+        qiangzhi(a,b);
+        if(Type==Int) return Rec(a.vint-b.vint);
+        if(Type==Double) return Rec(a.vdouble-b.vdouble);
     }
     Rec operator*(Rec b){
-        qiangzhi(*this,b);
-        if(Type==Int) return Rec(vint*b.vint);
-        if(Type==Double) return Rec(vdouble*b.vdouble);
+        Rec a=*this;
+        qiangzhi(a,b);
+        if(Type==Int) return Rec(a.vint*b.vint);
+        if(Type==Double) return Rec(a.vdouble*b.vdouble);
         if(Type==Str){
             Rec tmp("",Str);
             for(bigint i(1);i<=b.vint;i+=bigint(1)){
-                tmp.vstring+=vstring;
+                tmp.vstring+=a.vstring;
             }
             return tmp;
         }
     }
     Rec operator/(Rec b){
-        qiangzhi(*this,b);
+        Rec a=*this;
+        qiangzhi(a,b);
         if(Type==Int){
-            *this=this->transdouble();
+            a=a.transdouble();
             b=b.transdouble();
         }
-        if(Type==Double) return Rec(vdouble/b.vdouble);
+        if(Type==Double) return Rec(a.vdouble/b.vdouble);
     }
     friend Rec ZC(Rec a,Rec b){
         qiangzhi(a,b);
         return Rec(Zdiv(a.vint,b.vint));
     }
     Rec operator%(Rec b){
-        qiangzhi(*this,b);
-        return Rec(vint%b.vint);
+        Rec a=*this;
+        qiangzhi(a,b);
+        return Rec(a.vint%b.vint);
     }
     Rec &operator+=(const Rec &b){
         *this=*this+b;
@@ -278,23 +291,25 @@ public:
         return a;
     }
     bool operator==(Rec b){
-        qiangzhi(*this,b);
-        if(Type==Int&&b.Type==Int&&vint==b.vint) return true;
-        if(Type==Str&&b.Type==Str&&vstring==b.vstring) return true;
-        if(Type==Bool&&b.Type==Bool&&vbool==b.vbool) return true;
-        if(Type==Non&&b.Type==Non) return true;
-        if(Type==Double&&b.Type==Double&&vdouble==b.vdouble) return true;
+        Rec a=*this;
+        qiangzhi(a,b);
+        if(a.Type==Int&&b.Type==Int&&a.vint==b.vint) return true;
+        if(a.Type==Str&&b.Type==Str&&a.vstring==b.vstring) return true;
+        if(a.Type==Bool&&b.Type==Bool&&a.vbool==b.vbool) return true;
+        if(a.Type==Non&&b.Type==Non) return true;
+        if(a.Type==Double&&b.Type==Double&&a.vdouble==b.vdouble) return true;
         return false;
     }
     bool operator!=(const Rec&b){
         return !(*this==b);
     }
     bool operator>(Rec b){
-        qiangzhi(*this,b);
-        if(Type==Int&&b.Type==Int&&vint>b.vint) return true;
-        if(Type==Str&&b.Type==Str&&vstring>b.vstring) return true;
-        if(Type==Bool&&b.Type==Bool&&vbool>b.vbool) return true;
-        if(Type==Double&&b.Type==Double&&vdouble>b.vdouble) return true;
+        Rec a=*this;
+        qiangzhi(a,b);
+        if(a.Type==Int&&b.Type==Int&&a.vint>b.vint) return true;
+        if(a.Type==Str&&b.Type==Str&&a.vstring>b.vstring) return true;
+        if(a.Type==Bool&&b.Type==Bool&&a.vbool>b.vbool) return true;
+        if(a.Type==Double&&b.Type==Double&&a.vdouble>b.vdouble) return true;
         return false;
     }
     bool operator<(const Rec&b){
