@@ -205,7 +205,7 @@ public:
             return tmp;
         }
         else if(Type==Double){
-            tmp.vbool = !(vdouble == 0);
+            tmp.vbool = vdouble != 0;
             return tmp;
         }
         else if(Type==Str){
@@ -225,22 +225,22 @@ public:
     Rec operator+(Rec b){
         Rec a=*this;
         qiangzhi(a,b);
-        if(Type==Int) return Rec(a.vint+b.vint);
-        if(Type==Str) return Rec(a.vstring+b.vstring);
-        if(Type==Double) return Rec(a.vdouble+b.vdouble);
+        if(a.Type==Int) return Rec(a.vint+b.vint);
+        if(a.Type==Str) return Rec(a.vstring+b.vstring);
+        if(a.Type==Double) return Rec(a.vdouble+b.vdouble);
     }
     Rec operator-(Rec b){
         Rec a=*this;
         qiangzhi(a,b);
-        if(Type==Int) return Rec(a.vint-b.vint);
-        if(Type==Double) return Rec(a.vdouble-b.vdouble);
+        if(a.Type==Int) return Rec(a.vint-b.vint);
+        if(a.Type==Double) return Rec(a.vdouble-b.vdouble);
     }
     Rec operator*(Rec b){
         Rec a=*this;
         qiangzhi(a,b);
-        if(Type==Int) return Rec(a.vint*b.vint);
-        if(Type==Double) return Rec(a.vdouble*b.vdouble);
-        if(Type==Str){
+        if(a.Type==Int) return Rec(a.vint*b.vint);
+        if(a.Type==Double) return Rec(a.vdouble*b.vdouble);
+        if(a.Type==Str){
             Rec tmp("",Str);
             for(bigint i(1);i<=b.vint;i+=bigint(1)){
                 tmp.vstring+=a.vstring;
@@ -251,11 +251,11 @@ public:
     Rec operator/(Rec b){
         Rec a=*this;
         qiangzhi(a,b);
-        if(Type==Int){
+        if(a.Type==Int){
             a=a.transdouble();
             b=b.transdouble();
         }
-        if(Type==Double) return Rec(a.vdouble/b.vdouble);
+        if(a.Type==Double) return Rec(a.vdouble/b.vdouble);
     }
     friend Rec ZC(Rec a,Rec b){
         qiangzhi(a,b);
