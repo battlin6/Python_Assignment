@@ -7,6 +7,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+//vector<Rec> Q;
+//return Q;
+
 enum Command {Nono,Return,Break,Continue};
 Command Conditon = Nono;
 map<string,Rec> AllR[2003];
@@ -29,7 +32,8 @@ class EvalVisitor: public Python3BaseVisitor {
     virtual antlrcpp::Any visitFile_input(Python3Parser::File_inputContext *ctx) override{
         for(const auto i : ctx->stmt())
             visitStmt(i);
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitFuncdef(Python3Parser::FuncdefContext *ctx) override {
         string Name = ctx->NAME()->getText();
@@ -39,7 +43,8 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitParameters(Python3Parser::ParametersContext *ctx) override {
         if(ctx->typedargslist()) return visitTypedargslist(ctx->typedargslist());
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitTypedargslist(Python3Parser::TypedargslistContext *ctx) override {
         //Though it is a key part,I ignore its importance,resulting in many bugs.
@@ -48,8 +53,8 @@ class EvalVisitor: public Python3BaseVisitor {
         int i=0,j=0; //i->tppedef  j->test
         for(;j<ctx->test().size();++i,++j){
             string now = visitTfpdef(ctx->tfpdef()[ctx->tfpdef().size()-i-1]);
-            Rec tmp = visitTest(ctx->test()[ctx->test().size()-j-1]).as<Rec>();
-            Funcset[nowcntfunc][now] = tmp;
+            vector<Rec> tmp = visitTest(ctx->test()[ctx->test().size()-j-1]);
+            Funcset[nowcntfunc][now] = tmp[0];
             Funcname[nowcntfunc].push_back(now);
         }
         for(;i<ctx->tfpdef().size();++i){
@@ -60,7 +65,8 @@ class EvalVisitor: public Python3BaseVisitor {
         }
         for(int k=0;k<Funcname[nowcntfunc].size()/2;k++)
             swap(Funcname[nowcntfunc][k],Funcname[nowcntfunc][Funcname[nowcntfunc].size()-1-k]);
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitTfpdef(Python3Parser::TfpdefContext *ctx) override {
         return ctx->NAME()->getText();
@@ -104,10 +110,12 @@ class EvalVisitor: public Python3BaseVisitor {
                 }
             }
         }
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitAugassign(Python3Parser::AugassignContext *ctx) override {
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitFlow_stmt(Python3Parser::Flow_stmtContext *ctx) override {
         if(ctx->break_stmt()) return visitBreak_stmt(ctx->break_stmt());
@@ -116,11 +124,13 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitBreak_stmt(Python3Parser::Break_stmtContext *ctx) override {
         Conditon=Break;
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitContinue_stmt(Python3Parser::Continue_stmtContext *ctx) override {
         Conditon=Continue;
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) override {
         int funct=constfunc;
@@ -128,9 +138,10 @@ class EvalVisitor: public Python3BaseVisitor {
             vector<Rec> tmp = visitTestlist(ctx->testlist()).as<vector<Rec>>();
             Conditon=Return;
             //return tmp;
-            return tmp[0];
+            return tmp;
         }
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitCompound_stmt(Python3Parser::Compound_stmtContext *ctx) override {
         if(ctx->if_stmt()) return visitIf_stmt(ctx->if_stmt());
@@ -138,30 +149,31 @@ class EvalVisitor: public Python3BaseVisitor {
         if(ctx->funcdef()) return visitFuncdef(ctx->funcdef());
     }
     virtual antlrcpp::Any visitIf_stmt(Python3Parser::If_stmtContext *ctx) override {
-        Rec tmp = visitTest(ctx->test()[0]);
+        vector<Rec> tmp = visitTest(ctx->test()[0]);
         int pos = 0;
-        tmp = tmp.transbool();
-        while (!tmp.getbool() && pos + 1 < ctx->test().size()) {
+        tmp[0] = tmp[0].transbool();
+        while (!tmp[0].getbool() && pos + 1 < ctx->test().size()) {
             pos++;
-            Rec T = visitTest(ctx->test()[pos]);
-            T = T.transbool();
+            vector<Rec> T = visitTest(ctx->test()[pos]);
+            T[0] = T[0].transbool();
             tmp = T;
         }
-        if (tmp.getbool()) {
-            Rec T = visitSuite(ctx->suite()[pos]);
+        if (tmp[0].getbool()) {
+            vector<Rec> T = visitSuite(ctx->suite()[pos]);
             return T;
         } else if (pos + 1 < ctx->suite().size()) {
-            Rec T = visitSuite(ctx->suite()[pos + 1]);
+            vector<Rec> T = visitSuite(ctx->suite()[pos + 1]);
             return T;
         }
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitWhile_stmt(Python3Parser::While_stmtContext *ctx) override {
-        Rec tmp = visitTest(ctx->test());
-        tmp = tmp.transbool();
+        vector<Rec> tmp = visitTest(ctx->test());
+        tmp[0] = tmp[0].transbool();
         //cout<<tmp.getbool()<<endl;
-        while (tmp.getbool()) {
-            Rec T = visitSuite(ctx->suite());
+        while (tmp[0].getbool()) {
+            vector<Rec> T = visitSuite(ctx->suite());
             //cout<<ctx->suite()->getText()<<endl;
             if (Conditon == Break) {
                 Conditon = Nono;
@@ -170,27 +182,29 @@ class EvalVisitor: public Python3BaseVisitor {
                 Conditon = Nono;
             else if (Conditon == Return)
                 return T;
-            Rec tmp1 = visitTest(ctx->test());
-            tmp1 = tmp1.transbool();
+            vector<Rec> tmp1 = visitTest(ctx->test());
+            tmp1[0] = tmp1[0].transbool();
             tmp = tmp1;
         }
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitSuite(Python3Parser::SuiteContext *ctx) override {
         //debug
         if(ctx->simple_stmt()){
             //debug
-            Rec tmp=visitSimple_stmt(ctx->simple_stmt()).as<Rec>();
+            vector<Rec> tmp=visitSimple_stmt(ctx->simple_stmt());
             if(Conditon==Return) return tmp;
         }else{
             for (unsigned int i = 0; i < ctx->stmt().size(); i++) {
-                Rec tmp = visitStmt(ctx->stmt()[i]).as<Rec>();
+                vector<Rec> tmp = visitStmt(ctx->stmt()[i]);
                 if(Conditon==Break||Conditon==Continue) break;
                 if(Conditon==Return) return tmp;
             }
         }
         //debug
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitTest(Python3Parser::TestContext *ctx) override {
         //cerr<<"bug"<<endl;
@@ -198,90 +212,112 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitOr_test(Python3Parser::Or_testContext *ctx) override {
         const auto tmp= ctx->and_test();
+        vector<Rec> Q;
         if((signed)tmp.size()==1)
             return visitAnd_test(tmp[0]);
         for(auto i:tmp){
-            Rec T=visitAnd_test(i).as<Rec>();
-            if(T.transbool().getbool()) return Rec(bool(true));
+            vector<Rec> T=visitAnd_test(i);
+            if(T[0].transbool().getbool()) {
+               Q.push_back( Rec(bool(true)));
+               return Q;
+            }
         }
-        return Rec(bool(false));
+        Q.push_back( Rec(bool(false)));
+        return Q;
     }
     virtual antlrcpp::Any visitAnd_test(Python3Parser::And_testContext *ctx) override {
         const auto tmp= ctx->not_test();
+        vector<Rec> Q;
         if((signed)tmp.size()==1)
             return visitNot_test(tmp[0]);
         for(auto i:tmp){
-            Rec T=visitNot_test(i).as<Rec>();
-            if(!T.transbool().getbool()) return Rec(bool(false));
+            vector<Rec> T=visitNot_test(i);
+            if(!T[0].transbool().getbool()) {
+                Q.push_back(Rec(bool(false)));
+                return Q;
+            }
         }
-        return Rec(bool(true));
+        Q.push_back( Rec(bool(true)));
+        return Q;
     }
     virtual antlrcpp::Any visitNot_test(Python3Parser::Not_testContext *ctx) override {
         //cerr<<"bug"<<endl;
         if (ctx->comparison())
             return visitComparison(ctx->comparison());
-        return Rec(bool(!visitNot_test(ctx->not_test()).as<Rec>().transbool().getbool()));
+        vector<Rec> Q;
+        vector<Rec> tmp=visitNot_test(ctx->not_test());
+        if(tmp[0].transbool().getbool()){
+            Q.push_back(Rec(bool(false)));
+            return Q;
+        }
+        Q.push_back( Rec(bool(true)));
+        return Q;
     }
     virtual antlrcpp::Any visitComparison(Python3Parser::ComparisonContext *ctx) override {
         auto tmp = ctx->comp_op();
+        vector<Rec> Q;
         if (tmp.empty())
             return visitArith_expr(ctx->arith_expr()[0]);
-        Rec now = visitArith_expr(ctx->arith_expr()[0]).as<Rec>();
+        vector<Rec> now = visitArith_expr(ctx->arith_expr()[0]);
         for (int i = 0; i < tmp.size(); ++i) {
             auto op = tmp[i]->getText();
-            Rec news = visitArith_expr(ctx->arith_expr()[i + 1]).as<Rec>();
+            vector<Rec> news = visitArith_expr(ctx->arith_expr()[i + 1]);
             bool flag = false;
             if (op == "<") {
-                if (now < news) flag = true;
+                if (now[0] < news[0]) flag = true;
             } else if (op == ">") {
-                if (now > news) flag = true;
+                if (now[0] > news[0]) flag = true;
             } else if (op == "==") {
-                if (now == news) flag = true;
+                if (now[0] == news[0]) flag = true;
             } else if (op == ">=") {
-                if (now >= news) flag = true;
+                if (now[0] >= news[0]) flag = true;
             } else if (op == "<=") {
-                if (now <= news) flag = true;
+                if (now[0] <= news[0]) flag = true;
             } else {
-                if (now != news) flag = true;
+                if (now[0] != news[0]) flag = true;
             }
-            if (!flag) return Rec(bool(false));
-            now = news;
+            if (!flag) {
+                Q.push_back(Rec(bool(false)));
+                return Q;
+            }
+            now[0] = news[0];
         }
-        return Rec(bool(true));
+        Q.push_back(Rec(bool(true)));
+        return Q;
     }
     virtual antlrcpp::Any visitComp_op(Python3Parser::Comp_opContext *ctx) override {
         return ctx;
     }
     virtual antlrcpp::Any visitArith_expr(Python3Parser::Arith_exprContext *ctx) override {
-        Rec T = visitTerm(ctx->term()[0]).as<Rec>();
+        vector<Rec> T = visitTerm(ctx->term()[0]);
         string now = ctx->getText();
         now.erase(0, ctx->term()[0]->getText().length());
         for (unsigned int i = 1; i < ctx->term().size(); i++) {
-            Rec tmp = visitTerm(ctx->term()[i]).as<Rec>();
+            vector<Rec> tmp = visitTerm(ctx->term()[i]);
             if (now[0] == '+')
-                T += tmp;
+                T[0] += tmp[0];
             else
-                T -= tmp;
+                T[0] -= tmp[0];
             now.erase(0, 1 + ctx->term()[i]->getText().length());
         }
         return T;
     }
     virtual antlrcpp::Any visitTerm(Python3Parser::TermContext *ctx) override {
-        Rec T = visitFactor(ctx->factor()[0]).as<Rec>();
+        vector<Rec> T = visitFactor(ctx->factor()[0]);
         string now=ctx->getText();
         now.erase(0,ctx->factor()[0]->getText().length());
         for(int i=1;i<ctx->factor().size();i++){
             int ext=1;
-            Rec tmp=visitFactor(ctx->factor()[i]).as<Rec>();
+            vector<Rec> tmp=visitFactor(ctx->factor()[i]);
             if(now[0]=='*'){
-                T*=tmp;
+                T[0]*=tmp[0];
             }else if(now[0]=='%'){
-                T%=tmp;
+                T[0]%=tmp[0];
             }else if(now[0]=='/'&&now[1]!='/'){
-                T/=tmp;
+                T[0]/=tmp[0];
             }else if(now[0]=='/'&&now[1]=='/'){
                 ext++;
-                T=ZC(T,tmp);
+                T[0]=ZC(T[0],tmp[0]);
             }
             now.erase(0,ext+ctx->factor()[i]->getText().length());
         }
@@ -291,34 +327,43 @@ class EvalVisitor: public Python3BaseVisitor {
         if(ctx->factor()){
             string now=ctx->getText();
             if(now[0] == '+') return visitFactor(ctx->factor());
-            return -(visitFactor(ctx->factor()).as<Rec>());
+            vector<Rec> T=visitFactor(ctx->factor());
+            T[0]=-T[0];
+            return T;
         }
         return visitAtom_expr(ctx->atom_expr());
     }
     virtual antlrcpp::Any visitAtom_expr(Python3Parser::Atom_exprContext *ctx) override {
-        if (!ctx->trailer()) return visitAtom(ctx->atom());
+        if (!ctx->trailer()) {
+            vector<Rec> Q;
+            Q.push_back(visitAtom(ctx->atom()));
+            return Q;
+        }
 
         string Text = ctx->atom()->getText();
         if (Text == "print") {
             if (ctx->trailer()->arglist()) {
                 const auto Arguments = ctx->trailer()->arglist()->argument();
                 for (int i = 0; i < Arguments.size(); ++i) {
-                    auto data = visitTest(Arguments[i]->test()).as<Rec>();
-                    data.toprint();
+                    vector<Rec> data = visitTest(Arguments[i]->test());
+                    data[0].toprint();
                     if ((i + 1) != Arguments.size()) cout << " ";
                 }
             }
             cout << endl;
-            return Rec(Non);
+            vector<Rec> Q;
+            return Q;
         } //out is special
 
         if (ctx->atom()->NAME()) {
             int funct = constfunc = ftolis[ctx->atom()->NAME()->getText()];  //catch the number of a NAME
             Stack[++top] = funct;  // push into a stack
             if (funct <= 4) {   // transfuntion is special
-                Rec tmp = visitTrailer(ctx->trailer()).as<Rec>();
+                Rec tmp = visitTrailer(ctx->trailer());
                 constfunc = Stack[--top];
-                return tmp;
+                vector<Rec> Q;
+                Q.push_back(tmp);
+                return Q;
             } else {
                 int nowdepth = ++depth;
                 notin[nowdepth] = notin[nowdepth - 1] + 1;
@@ -328,7 +373,7 @@ class EvalVisitor: public Python3BaseVisitor {
                 }
                 visitTrailer(ctx->trailer());
                 notin[nowdepth] = 0;
-                Rec tmp = visitSuite(Lis[funct]).as<Rec>();
+                vector<Rec> tmp = visitSuite(Lis[funct]);
                 AllR[depth].clear();  //clear current depth
                 Conditon = Nono;
                 depth--;
@@ -336,7 +381,8 @@ class EvalVisitor: public Python3BaseVisitor {
                 return tmp;
             }
         }
-        return Rec(Non);
+        vector<Rec> Q;
+        return Q;
     }
     virtual antlrcpp::Any visitTrailer(Python3Parser::TrailerContext *ctx) override {
         if(ctx->arglist())
@@ -388,8 +434,11 @@ class EvalVisitor: public Python3BaseVisitor {
     virtual antlrcpp::Any visitTestlist(Python3Parser::TestlistContext *ctx) override {
         auto tmp=ctx->test();
         vector<Rec> T;
-        for(auto i:tmp)
-            T.push_back(visitTest(i).as<Rec>());
+        for(auto i:tmp) {
+            vector<Rec> Q =visitTest(i);
+            for(unsigned int j=0;j<Q.size();++j)
+                T.push_back(Q[j]);
+        }
         return T;
     }
     virtual antlrcpp::Any visitArglist(Python3Parser::ArglistContext *ctx) override {
@@ -412,8 +461,9 @@ class EvalVisitor: public Python3BaseVisitor {
     virtual antlrcpp::Any visitArgument(Python3Parser::ArgumentContext *ctx) override {
         Rec tmp;
         int nowdepth=depth;
-        if(ctx->NAME()) tmp= AllR[nowdepth][ctx->NAME()->getText()]=visitTest((ctx->test())).as<Rec>();
-        else tmp =visitTest(ctx->test()).as<Rec>();
+        vector<Rec> Q=visitTest((ctx->test()));
+        if(ctx->NAME()) tmp= AllR[nowdepth][ctx->NAME()->getText()]=Q[0];
+        else tmp=Q[0];
         return tmp;
     }
 };
