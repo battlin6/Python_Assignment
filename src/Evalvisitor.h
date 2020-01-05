@@ -157,22 +157,22 @@ class EvalVisitor: public Python3BaseVisitor {
         return Rec(Non);
     }
     virtual antlrcpp::Any visitWhile_stmt(Python3Parser::While_stmtContext *ctx) override {
-        Rec tmp=visitTest(ctx->test());
-        tmp=tmp.transbool();
-        while(tmp.getbool()){
+        Rec tmp = visitTest(ctx->test());
+        tmp = tmp.transbool();
+        //cout<<tmp.getbool()<<endl;
+        while (tmp.getbool()) {
             Rec T = visitSuite(ctx->suite());
             //cout<<ctx->suite()->getText()<<endl;
-            if(Conditon==Break){
-                Conditon=Nono;
+            if (Conditon == Break) {
+                Conditon = Nono;
                 break;
-            }
-            else if(Conditon==Continue)
-                Conditon=Nono;
-            else if(Conditon==Return)
+            } else if (Conditon == Continue)
+                Conditon = Nono;
+            else if (Conditon == Return)
                 return T;
-            Rec tmp1=visitTest(ctx->test());
-            tmp1.transbool();
-            tmp=tmp1;
+            Rec tmp1 = visitTest(ctx->test());
+            tmp1 = tmp1.transbool();
+            tmp = tmp1;
         }
         return Rec(Non);
     }
