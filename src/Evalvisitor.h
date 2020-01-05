@@ -126,7 +126,7 @@ class EvalVisitor: public Python3BaseVisitor {
         int funct=constfunc;
         if(ctx->testlist()) {
             vector<Rec> tmp = visitTestlist(ctx->testlist()).as<vector<Rec>>();
-                Conditon=Return;
+            Conditon=Return;
             //return tmp;
             return tmp[0];
         }
@@ -218,33 +218,34 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitNot_test(Python3Parser::Not_testContext *ctx) override {
         //cerr<<"bug"<<endl;
-        if(ctx->comparison())
+        if (ctx->comparison())
             return visitComparison(ctx->comparison());
         return Rec(bool(!visitNot_test(ctx->not_test()).as<Rec>().transbool().getbool()));
     }
     virtual antlrcpp::Any visitComparison(Python3Parser::ComparisonContext *ctx) override {
-        auto tmp=ctx->comp_op();
-        if(tmp.empty())
+        auto tmp = ctx->comp_op();
+        if (tmp.empty())
             return visitArith_expr(ctx->arith_expr()[0]);
-        for(int i=0;i<tmp.size();++i){
-            auto op=tmp[i]->getText();
-            Rec left=visitArith_expr(ctx->arith_expr()[i]).as<Rec>();
-            Rec right=visitArith_expr(ctx->arith_expr()[i+1]).as<Rec>();
-            bool flag= false;
-            if(op=="<") {
-                if (left < right) flag = true;
-            } else if(op==">"){
-                if(left>right) flag = true;
-            } else if(op=="=="){
-                if(left==right) flag=true;
-            } else if(op==">="){
-                if(left>=right) flag=true;
-            } else if(op=="<="){
-                if(left<=right) flag=true;
-            } else{
-                if(left!=right) flag=true;
+        Rec now = visitArith_expr(ctx->arith_expr()[0]).as<Rec>();
+        for (int i = 0; i < tmp.size(); ++i) {
+            auto op = tmp[i]->getText();
+            Rec news = visitArith_expr(ctx->arith_expr()[i + 1]).as<Rec>();
+            bool flag = false;
+            if (op == "<") {
+                if (now < news) flag = true;
+            } else if (op == ">") {
+                if (now > news) flag = true;
+            } else if (op == "==") {
+                if (now == news) flag = true;
+            } else if (op == ">=") {
+                if (now >= news) flag = true;
+            } else if (op == "<=") {
+                if (now <= news) flag = true;
+            } else {
+                if (now != news) flag = true;
             }
-            if(!flag) return Rec(bool(false));
+            if (!flag) return Rec(bool(false));
+            now = news;
         }
         return Rec(bool(true));
     }
@@ -259,7 +260,7 @@ class EvalVisitor: public Python3BaseVisitor {
             Rec tmp = visitTerm(ctx->term()[i]).as<Rec>();
             if (now[0] == '+')
                 T += tmp;
-             else
+            else
                 T -= tmp;
             now.erase(0, 1 + ctx->term()[i]->getText().length());
         }
@@ -393,19 +394,19 @@ class EvalVisitor: public Python3BaseVisitor {
     }
     virtual antlrcpp::Any visitArglist(Python3Parser::ArglistContext *ctx) override {
         //debug
-        int funct=constfunc,nowdepth=depth;
-        Rec tmp=visitArgument(ctx->argument()[0]).as<Rec>();
-        if(funct>4&&!ctx->argument()[0]->NAME())
+        int funct = constfunc, nowdepth = depth;
+        Rec tmp = visitArgument(ctx->argument()[0]).as<Rec>();
+        if (funct > 4 && !ctx->argument()[0]->NAME())
             AllR[nowdepth][Funcname[funct][0]] = tmp;
-        for(int i=1;i<ctx->argument().size();++i){
-            tmp=visitArgument(ctx->argument()[i]).as<Rec>();
-            if(funct>4&&!ctx->argument()[i]->NAME())
-                AllR[nowdepth][Funcname[funct][i]]=tmp;
+        for (int i = 1; i < ctx->argument().size(); ++i) {
+            tmp = visitArgument(ctx->argument()[i]).as<Rec>();
+            if (funct > 4 && !ctx->argument()[i]->NAME())
+                AllR[nowdepth][Funcname[funct][i]] = tmp;
         }
-        if(funct==1) tmp=tmp.transint();
-        else if(funct==2)tmp=tmp.transdouble();
-        else if(funct==3)tmp=tmp.transstr();
-        else if(funct==4)tmp=tmp.transbool();
+        if (funct == 1) tmp = tmp.transint();
+        else if (funct == 2)tmp = tmp.transdouble();
+        else if (funct == 3)tmp = tmp.transstr();
+        else if (funct == 4)tmp = tmp.transbool();
         return tmp;
     }
     virtual antlrcpp::Any visitArgument(Python3Parser::ArgumentContext *ctx) override {
