@@ -24,7 +24,7 @@ vector<string> Funcname[2003]; //record Funcs
 int depth = 0;
 int cntfunc = 4;  //record numbers of Func and have four convertional funcs
 #define debug cout<<"bug"<<endl;  //debug!!!!!debug!!!!!
-int constfunc=0,notin[2003];
+int constfunc=0,mark[2003];
 Python3Parser::SuiteContext *Lis[2003];
 int Stack[2003],top=0;  //stack!!!!!
 
@@ -368,13 +368,13 @@ class EvalVisitor: public Python3BaseVisitor {
                 return Q;
             } else {
                 int nowdepth = ++depth;
-                notin[nowdepth] = notin[nowdepth - 1] + 1;
+                mark[nowdepth] = mark[nowdepth - 1] + 1;
                 for (int i = 0; i < Funcname[funct].size(); ++i) {
                     auto p = Funcname[funct][i];
                     if (Funcset[funct][p].gettype() != Non) AllR[nowdepth][p] = Funcset[funct][p];
                 }
                 visitTrailer(ctx->trailer());
-                notin[nowdepth] = 0;
+                mark[nowdepth] = 0;
                 vector<Rec> tmp = visitSuite(Lis[funct]);
                 AllR[depth].clear();  //clear current depth
                 Conditon = Nono;
@@ -394,9 +394,9 @@ class EvalVisitor: public Python3BaseVisitor {
     virtual antlrcpp::Any visitAtom(Python3Parser::AtomContext *ctx) override {
         string Text = ctx->getText();
         if(ctx->NAME()){
-            int nowdepth=depth,qwq=notin[depth];
-            if(AllR[nowdepth-qwq].count(ctx->NAME()->getText()))   // global or not
-                return AllR[nowdepth-qwq][ctx->NAME()->getText()];
+            int nowdepth=depth,markback=mark[depth];
+            if(AllR[nowdepth-markback].count(ctx->NAME()->getText()))   // global or not
+                return AllR[nowdepth-markback][ctx->NAME()->getText()];
             else return AllR[0][ctx->NAME()->getText()];
         }else if(ctx->test()){
             vector<Rec> T=visitTest(ctx->test());
