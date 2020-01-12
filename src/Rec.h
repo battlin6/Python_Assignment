@@ -186,6 +186,7 @@ public:
                 string T="-"+tmp.vstring;
                 tmp.vstring = T;
             }
+            //cout<<vint<<"            "<<tmp.vstring<<endl;
             return tmp;
         }
         else if(Type==Double){
@@ -238,6 +239,13 @@ public:
     Rec operator*(Rec b){
         Rec a=*this;
         qiangzhi(a,b);
+        if(b.Type==Str){
+            Rec tmp("",Str);
+            for(bigint i(1);i<=a.vint;i+=bigint(1)){
+                tmp.vstring+=b.vstring;
+            }
+            return tmp;
+        }
         if(a.Type==Int) return Rec(a.vint*b.vint);
         if(a.Type==Double) return Rec(a.vdouble*b.vdouble);
         if(a.Type==Str){
