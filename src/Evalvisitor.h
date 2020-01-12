@@ -286,7 +286,9 @@ class EvalVisitor: public Python3BaseVisitor {
         return Q;
     }
     virtual antlrcpp::Any visitComp_op(Python3Parser::Comp_opContext *ctx) override {
-        return ctx;
+        vector<Rec> Q;
+        Q.push_back(Rec(bool(true)));
+        return Q;
     }
     virtual antlrcpp::Any visitArith_expr(Python3Parser::Arith_exprContext *ctx) override {
         vector<Rec> T = visitTerm(ctx->term()[0]);
@@ -397,7 +399,8 @@ class EvalVisitor: public Python3BaseVisitor {
                 return AllR[nowdepth-qwq][ctx->NAME()->getText()];
             else return AllR[0][ctx->NAME()->getText()];
         }else if(ctx->test()){
-            return visit(ctx->test());
+            vector<Rec> T=visitTest(ctx->test());
+            return T[0];
         }else if(ctx->NUMBER()){
             int flag = 0;
             for (int i = 0; i < Text.size(); ++i) {
